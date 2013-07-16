@@ -2,7 +2,6 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-SLOT="2"
 inherit toolchain-funcs multilib git-2
 
 SLOT="2"
