@@ -1,0 +1,178 @@
+diff -upr a/dmenu.1 b/dmenu.1
+--- a/dmenu.1	2013-07-19 17:20:47.431486399 +0700
++++ b/dmenu.1	2013-07-19 17:30:31.536504342 +0700
+@@ -39,6 +39,9 @@ which lists programs in the user's $PATH
+ .B \-b
+ dmenu appears at the bottom of the screen.
+ .TP
++.B \-q
++dmenu will not show any items if the search string is empty.
++.TP
+ .B \-f
+ dmenu grabs the keyboard before reading stdin.  This is faster, but will lock up
+ X until stdin reaches end\-of\-file.
+@@ -55,6 +58,15 @@ defines the prompt to be displayed to th
+ .BI \-fn " font"
+ defines the font or font set used. eg. "fixed" or "Monospace-12:normal" (an xft font)
+ .TP
++.BI \-x " xoffset"
++defines the offset from the left border of the screen.
++.TP
++.BI \-y " yoffset"
++defines the offset from the top border of the screen.
++.TP
++.BI \-w " width"
++defines the desired menu window width.
++.TP
+ .BI \-nb " color"
+ defines the normal background color.
+ .IR #RGB ,
+diff -upr a/dmenu.c b/dmenu.c
+--- a/dmenu.c	2013-07-19 17:20:47.432486399 +0700
++++ b/dmenu.c	2013-07-19 18:55:57.358661796 +0700
+@@ -54,10 +54,14 @@ static const char *selfgcolor  = "#eeeee
+ static unsigned int lines = 0;
+ static ColorSet *normcol;
+ static ColorSet *selcol;
++static int xoffset = 0;
++static int yoffset = 0;
++static int width = 0;
+ static Atom clip, utf8;
+ static Bool topbar = True;
+ static Bool running = True;
+ static int ret = 0;
++static Bool quiet = False;
+ static DC *dc;
+ static Item *items = NULL;
+ static Item *matches, *matchend;
+@@ -81,6 +85,8 @@ main(int argc, char *argv[]) {
+ 		}
+ 		else if(!strcmp(argv[i], "-b"))   /* appears at the bottom of the screen */
+ 			topbar = False;
++		else if(!strcmp(argv[i], "-q"))
++			quiet = True;
+ 		else if(!strcmp(argv[i], "-f"))   /* grabs keyboard before reading stdin */
+ 			fast = True;
+ 		else if(!strcmp(argv[i], "-i")) { /* case-insensitive item matching */
+@@ -90,6 +96,12 @@ main(int argc, char *argv[]) {
+ 		else if(i+1 == argc)
+ 			usage();
+ 		/* these options take one argument */
++		else if(!strcmp(argv[i], "-x"))
++			xoffset = atoi(argv[++i]);
++		else if(!strcmp(argv[i], "-y"))
++			yoffset = atoi(argv[++i]);
++		else if(!strcmp(argv[i], "-w"))
++			width = atoi(argv[++i]);
+ 		else if(!strcmp(argv[i], "-l"))   /* number of lines in vertical list */
+ 			lines = atoi(argv[++i]);
+ 		else if(!strcmp(argv[i], "-p"))   /* adds prompt to left of input field */
+@@ -196,29 +208,31 @@ drawmenu(void) {
+ 	if((curpos = textnw(dc, text, cursor) + dc->h/2 - 2) < dc->w)
+ 		drawrect(dc, curpos, 2, 1, dc->h - 4, True, normcol->FG);
+ 
+-	if(lines > 0) {
+-		/* draw vertical list */
+-		dc->w = mw - dc->x;
+-		for(item = curr; item != next; item = item->right) {
+-			dc->y += dc->h;
+-			drawtext(dc, item->text, (item == sel) ? selcol : normcol);
+-		}
+-	}
+-	else if(matches) {
+-		/* draw horizontal list */
+-		dc->x += inputw;
+-		dc->w = textw(dc, "<");
+-		if(curr->left)
+-			drawtext(dc, "<", normcol);
+-		for(item = curr; item != next; item = item->right) {
+-			dc->x += dc->w;
+-			dc->w = MIN(textw(dc, item->text), mw - dc->x - textw(dc, ">"));
+-			drawtext(dc, item->text, (item == sel) ? selcol : normcol);
+-		}
+-		dc->w = textw(dc, ">");
+-		dc->x = mw - dc->w;
+-		if(next)
+-			drawtext(dc, ">", normcol);
++	if(!quiet || strlen(text) > 0) {
++		if(lines > 0) {
++			/* draw vertical list */
++			dc->w = mw - dc->x;
++			for(item = curr; item != next; item = item->right) {
++				dc->y += dc->h;
++				drawtext(dc, item->text, (item == sel) ? selcol : normcol);
++			}
++		}
++		else if(matches) {
++			/* draw horizontal list */
++			dc->x += inputw;
++			dc->w = textw(dc, "<");
++			if(curr->left)
++				drawtext(dc, "<", normcol);
++			for(item = curr; item != next; item = item->right) {
++				dc->x += dc->w;
++				dc->w = MIN(textw(dc, item->text), mw - dc->x - textw(dc, ">"));
++				drawtext(dc, item->text, (item == sel) ? selcol : normcol);
++			}
++			dc->w = textw(dc, ">");
++			dc->x = mw - dc->w;
++			if(next)
++				drawtext(dc, ">", normcol);
++		}
+ 	}
+ 	mapdc(dc, win, mw, mh);
+ }
+@@ -284,7 +298,7 @@ keypress(XKeyEvent *ev) {
+ 		case XK_w: /* delete word */
+ 			while(cursor > 0 && text[nextrune(-1)] == ' ')
+ 				insert(NULL, nextrune(-1) - cursor);
+-			while(cursor > 0 && text[nextrune(-1)] != ' ')
++			while(cursor > 0 && text[nextrune(-1)] != ' ' && text[nextrune(-1)] != '/')
+ 				insert(NULL, nextrune(-1) - cursor);
+ 			break;
+ 		case XK_y: /* paste selection */
+@@ -337,8 +351,8 @@ keypress(XKeyEvent *ev) {
+ 		sel = matchend;
+ 		break;
+ 	case XK_Escape:
+-        ret = EXIT_FAILURE;
+-        running = False;
++		ret = EXIT_FAILURE;
++		running = False;
+ 	case XK_Home:
+ 		if(sel == matches) {
+ 			cursor = 0;
+@@ -578,7 +592,7 @@ setup(void) {
+ 					break;
+ 
+ 		x = info[i].x_org;
+-		y = info[i].y_org + (topbar ? 0 : info[i].height - mh);
++		y = info[i].y_org + (topbar ? yoffset : info[i].height - mh - yoffset);
+ 		mw = info[i].width;
+ 		XFree(info);
+ 	}
+@@ -586,9 +600,13 @@ setup(void) {
+ #endif
+ 	{
+ 		x = 0;
+-		y = topbar ? 0 : DisplayHeight(dc->dpy, screen) - mh;
++		y = topbar ? yoffset : DisplayHeight(dc->dpy, screen) - mh - yoffset;
+ 		mw = DisplayWidth(dc->dpy, screen);
+ 	}
++
++	x += xoffset;
++	mw = width ? width : mw;
++
+ 	promptw = prompt ? textw(dc, prompt) : 0;
+ 	inputw = MIN(inputw, mw/3);
+ 	match();
+@@ -614,7 +632,8 @@ setup(void) {
+ 
+ void
+ usage(void) {
+-	fputs("usage: dmenu [-b] [-f] [-i] [-l lines] [-p prompt] [-fn font]\n"
++	fputs("usage: dmenu [-b] [-q] [-f] [-i] [-l lines] [-p prompt] [-fn font]\n"
++	      "             [-x xoffset] [-y yoffset] [-w width]\n"
+ 	      "             [-nb color] [-nf color] [-sb color] [-sf color] [-v]\n", stderr);
+ 	exit(EXIT_FAILURE);
+ }
