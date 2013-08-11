@@ -1,0 +1,25 @@
+diff -upr a/dmenu.c b/dmenu.c
+--- a/dmenu.c	2013-08-11 23:16:40.420150653 +0700
++++ b/dmenu.c	2013-08-11 23:19:44.292156301 +0700
+@@ -550,6 +550,7 @@ setup(void) {
+ 	int x, y, screen = DefaultScreen(dc->dpy);
+ 	Window root = RootWindow(dc->dpy, screen);
+ 	XSetWindowAttributes swa;
++	XClassHint *ch = XAllocClassHint();
+ 	XIM xim;
+ #ifdef XINERAMA
+ 	int n;
+@@ -626,6 +627,13 @@ setup(void) {
+ 	                XNClientWindow, win, XNFocusWindow, win, NULL);
+ 
+ 	XMapRaised(dc->dpy, win);
++
++	/* set WM_CLASS */
++	ch->res_name = "dmenu";
++	ch->res_class = "dmenu";
++	XSetClassHint(dc->dpy, win, ch);
++	XFree(ch);
++
+ 	resizedc(dc, mw, mh);
+ 	drawmenu();
+ }

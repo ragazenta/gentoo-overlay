@@ -35,7 +35,8 @@ src_prepare() {
 		-e '/^	echo/d' \
 		Makefile || die
 	use xft && epatch "${FILESDIR}"/${PN}-4.5-xft.patch \
-	&& epatch "${FILESDIR}"/${PN}-4.5-xft-qxyw.patch
+	&& epatch "${FILESDIR}"/${PN}-4.5-xft-qxyw.patch \
+	&& epatch "${FILESDIR}"/${PN}-4.5-wmclass.patch
 
 	epatch_user
 }
