@@ -20,7 +20,6 @@ The **xft** USE Flag must be enabled to make QXYW feature works.
 (I don't know how to add USE Flag)
 
 ### Dzen with Xft Support
-Dzen with Xft support. Actually, it has already in main Portage tree
-as unstable package (dzen-0.9.5) since 18 July 2013.
+Dzen with Xft support. Actually, it has already in main Portage tree (dzen-0.9.5-r1) since 30 September 2013.
 
 I got the ebuild from [here](https://github.com/ojima-h/my-overlays).
