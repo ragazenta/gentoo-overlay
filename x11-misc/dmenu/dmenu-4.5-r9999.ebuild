@@ -36,7 +36,8 @@ src_prepare() {
 		Makefile || die
 	use xft && epatch "${FILESDIR}"/${PN}-4.5-xft.patch \
 	&& epatch "${FILESDIR}"/${PN}-4.5-xft-qxyw.patch \
-	&& epatch "${FILESDIR}"/${PN}-4.5-wmclass.patch
+	&& epatch "${FILESDIR}"/${PN}-4.5-wmclass.patch \
+	&& epatch "${FILESDIR}"/${PN}-4.5-height.patch
 
 	epatch_user
 }
