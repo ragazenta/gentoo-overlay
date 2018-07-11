@@ -9,7 +9,9 @@ Currently, my overlay contains:
 ### Dmenu with QXYW Patch and WM_CLASS Patch
 Dmenu with some additional options: quiet, XY offset, and width.
 
-**Update:** Add WM_CLASS patch (I got from [here](https://bbs.archlinux.org/viewtopic.php?pid=563279))
+**Update 2:** Add height patch (I got from [here](https://gist.github.com/runiq/1755434))
+
+**Update 1:** Add WM_CLASS patch (I got from [here](https://bbs.archlinux.org/viewtopic.php?pid=563279))
 
 I got the QXWY patch from [here](https://github.com/baskerville/dmenu_qxyw).
 
