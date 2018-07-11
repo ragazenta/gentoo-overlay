@@ -1,0 +1,12 @@
+<repositories encoding="unicode" version="1.1">
+  <repo priority="50" quality="experimental">
+    <name>ragazenta</name>
+    <description>Personal Gentoo Overlay</description>
+    <homepage>https://github.com/ragazenta/gentoo-overlay</homepage>
+    <owner>
+      <email>ragazenta@gmail.com</email>
+      <name>Renjaya Raga Zenta</name>
+    </owner>
+    <source type="git">https://github.com/ragazenta/gentoo-overlay.git</source>
+  </repo>
+</repositories>
